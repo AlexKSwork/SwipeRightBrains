@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head(title='Admin')" ></head>
+
+<body>
+<nav class="navbar navbar-default" th:replace="fragments/navigation"></nav>
+
+<div class="container">
+    <h1>Manage Images</h1>
+
+    <h2>Upload New Image(s)</h2>
+    <form action="/scans/new" method="post" enctype="multipart/form-data">
+        Front: <input type="file" name="image1" class="form-control-file"><br>
+        Side: <input type="file" name="image2" class="form-control-file"><br>
+        Top: <input type="file" name="image3" class="form-control-file"><br>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <h2>Images</h2>
+
+    <table class="table" id="scan_table">
+        <tr><th>ID</th><th>Filename 1</th><th>Filename 2</th><th>Filename 3</th><th>Known good/bad</th><th>Good responses</th><th>Bad responses</th></tr>
+    </table>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item"><a class="page-link" onclick="changePage(-1)" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link" id="pageNumber" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" onclick="changePage(1)" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+    function clearTable(){
+        var table = document.getElementById("scan_table");
+        var rowCount = table.rows.length;
+        for (var i = rowCount - 1; i > 0; i--) {
+            table.deleteRow(i);
+        }
+    }
+
+    function changePage(changeBy) {
+        var curPage = $("#pageNumber").text();
+        getScans(parseInt(curPage)+changeBy);
+    }
+
+    function updatePageNumber(pageNumber) {
+        var curPage = $("#pageNumber").text(pageNumber);
+    }
+
+    function getScans(page){
+        $.getJSON("/scans/?page="+page, function( scans ) {
+            updatePageNumber(page);
+            clearTable();
+            for (var i = 0; i < scans.length; i++) {
+                $("table").append('<tr data-id="'+scans[i].id+'"><td>'+scans[i].id+'</td><td><a target="_blank" href="/brain_images/'+scans[i].path1+'">'+scans[i].path1.substring(0,15)+"..."+'</a></td><td><a target="_blank" href="/brain_images/'+scans[i].path2+'">'+scans[i].path2.substring(0,15)+"..."+'</a></td><td><a target="_blank" href="/brain_images/'+scans[i].path3+'">'+scans[i].path3.substring(0,15)+"..."+'</a></td><td class="knownGood">'+scans[i].knownGood+'</td><td>Good responses</td><td>Bad responses</td></tr>');
+            }
+
+            $("table tr").each(function() {
+                var id = $(this).data("id");
+                var knownGood = $(this).find(".knownGood").text();
+
+                $(this).find(".knownGood").html('<select class="form-control" data-id="'+id+'">\n' +
+                    '    <option value="null">Unknown</option>\n' +
+                    '    <option value="true">Good</option>\n' +
+                    '    <option value="false">Bad</option>\n' +
+                    '</select>');
+
+                $(this).find(".knownGood select").val(knownGood);
+
+                $(this).find(".knownGood select").on("change", function (e) {
+
+                    var knownGood = $(this).val();
+
+                    if(knownGood === "true"){
+                        knownGood = true;
+                    }else if(knownGood === "false"){
+                        knownGood = false;
+                    }else{
+                        knownGood = null;
+                    }
+
+                    $.post("/scans/"+$(this).data("id")+"/setKnownGood", { knownGood: knownGood })
+                        .done(function( data ) {
+                            $.notify("Option saved", {
+                            });
+                        });
+                });
+            });
+        });
+    }
+
+    $(function() {
+        getScans(1);
+    });
+</script>
+
+</body>
+</html>

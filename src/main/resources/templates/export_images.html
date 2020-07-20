@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head(title='Extract Images')" ></head>
+
+<body>
+
+<nav class="navbar navbar-default" th:replace="fragments/navigation"></nav>
+
+<div class="container">
+
+    <h1>Get image set</h1>
+    <div>
+        <h3>Enter your criteria below for what your image set will have</h3>
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="numResponses">Minimum number of responses</label>
+                <div class="col-sm-10">
+                    <input id="numResponses" class="form-control"/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="goodPercentage">Good percentage</label>
+                <div class="col-sm-10">
+                    <input id="goodPercentage" class="form-control"/>
+
+                    <p class="text text-info">Note leaving these fields empty will get all images</p>
+                    <button class="btn btn-primary" onclick="updateTable(1)">Update</button>
+                    <button class="btn btn-primary" onclick="downloadImages()">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="table" id="scan_table">
+        <tr><th>ID</th><th>Front</th><th>Side</th><th>Top</th></tr>
+        <div id="scan_table_body"></div>
+    </table>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item"><a class="page-link" onclick="changePage(-1)" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link" id="pageNumber" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" onclick="changePage(1)" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+<script>
+    function changePage(changeBy) {
+        var curPage = $("#pageNumber").text();
+        updateTable(parseInt(curPage)+changeBy);
+    }
+
+    function updatePageNumber(pageNumber) {
+        var curPage = $("#pageNumber").text(pageNumber);
+    }
+
+    var updateTable = function (page) {
+        var filter_min_responses = document.getElementById("numResponses").value;
+        var filter_percentage_good = document.getElementById("goodPercentage").value;
+
+        $.ajax({
+            url: '/scans/getScansFiltered?filter_min_responses='+filter_min_responses+'&filter_percentage_good='+filter_percentage_good+'&page='+page,
+            type: 'GET',
+            success: function (data) {
+                clearTable();
+                updateTableContent(data);
+                updatePageNumber(page);
+            }
+        });
+    };
+
+    function clearTable(){
+        var table = document.getElementById("scan_table");
+        var rowCount = table.rows.length;
+        for (var i = rowCount - 1; i > 0; i--) {
+            table.deleteRow(i);
+        }
+    }
+
+    function updateTableContent(scans) {
+        for (var i = 0; i < scans.length; i++) {
+            $("table").append('<tr data-id="'+scans[i].id+'"><td>'+scans[i].id+'</td><td><a target="_blank" href="/brain_images/'+scans[i].path1+'">'+scans[i].path1.substring(0,15)+"..."+'</a></td><td><a target="_blank" href="/brain_images/'+scans[i].path2+'">'+scans[i].path2.substring(0,15)+"..."+'</a></td><td><a target="_blank" href="/brain_images/'+scans[i].path3+'">'+scans[i].path3.substring(0,15)+"..."+'</a></td></tr>');
+        }
+    }
+
+    function downloadImages() {
+        var filter_min_responses = document.getElementById("numResponses").value;
+        var filter_percentage_good = document.getElementById("goodPercentage").value;
+
+        downloadFile('/scans/downloadScansFiltered?filter_min_responses='+filter_min_responses+'&filter_percentage_good='+filter_percentage_good, "images.zip")
+    }
+
+    //From https://stackoverflow.com/questions/38192854/recieving-a-zip-file-as-response-on-ajax-request
+    function downloadFile(url, headers, filename) {
+
+        function handleFile(data) {
+            console.log(this.response || data);
+            var file = URL.createObjectURL(this.response || data);
+            filename = filename || url.split("/").pop();
+            var a = document.createElement("a");
+            // if `a` element has `download` property
+            if ("download" in a) {
+                a.href = file;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                // use `window.open()` if `download` not defined at `a` element
+                window.open(file)
+            }
+        }
+
+        var request = new XMLHttpRequest();
+        request.responseType = "blob";
+        request.onload = handleFile;
+        request.open("GET", url);
+        for (var prop in headers) {
+            request.setRequestHeader(prop, headers[prop]);
+        }
+
+        request.send();
+    }
+
+</script>
+</body>
+</html>

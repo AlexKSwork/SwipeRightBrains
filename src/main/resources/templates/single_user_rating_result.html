@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head(title='Feedback')" ></head>
+    <body>
+
+    <nav class="navbar navbar-default" th:replace="fragments/navigation"></nav>
+
+        <div class="container">
+
+			<h2>User Responses</h2>
+
+            <table class="table">
+			    <tr>
+			      <th>Image ID</th>
+			      <th>Yes</th>
+			      <th>No</th>
+			    </tr>
+				<tr th:each="entry : ${userRatingMap}">
+					<td th:text="${entry.key}"></td>
+					<td th:text="${entry.value.get('yes')}"></td>
+					<td th:text="${entry.value.get('no')}"></td>
+				</tr>
+			</table>
+        </div>
+    </body>
+</html>

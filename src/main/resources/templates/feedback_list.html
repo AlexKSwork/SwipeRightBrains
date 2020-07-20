@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head(title='Feedback')" ></head>
+    <body>
+
+        <nav class="navbar navbar-default" th:replace="fragments/navigation"></nav>
+
+        <div class="container">
+            <h1>Feedback Received</h1>
+
+            <table class="table" id="feedbackTable">
+                <tr><td>User</td><td>Feedback Left</td></tr>
+            </table>
+
+        </div>
+
+        <script>
+            $(function() {
+                $.ajax({
+                    url: '/feedback/',
+                    type: 'GET',
+                    success: function (feedbackArray) {
+                        for (i = 0; i < feedbackArray.length; i++) {
+                            $("#feedbackTable").append("<tr><td>"+feedbackArray[i].userEmail+"</td><td>"+feedbackArray[i].feedback+"</td></tr>")
+                        }
+                    },
+                    error: function(data){
+                        alert("There was an error getting feedback. Please try again.")
+                    },
+                    dataType: 'json'
+                });
+            });
+        </script>
+    </body>
+</html>

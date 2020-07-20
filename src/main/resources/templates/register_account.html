@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head(title='Register')" ></head>
+    <body>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="pwstrength.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            options = {
+                common: {minChar:8},
+                ui: {
+                    showVerdictsInsideProgressBar:true,
+                    showErrors:true,
+                    errorMessages:{
+                        wordLength: '<spring:message code="error.wordLength"/>',
+                        wordNotEmail: '<spring:message code="error.wordNotEmail"/>',
+                        wordSequences: '<spring:message code="error.wordSequences"/>',
+                        wordLowercase: '<spring:message code="error.wordLowercase"/>',
+                        wordUppercase: '<spring:message code="error.wordUppercase"/>',
+                        wordOneNumber: '<spring:message code="error.wordOneNumber"/>',
+                        wordOneSpecialChar: '<spring:message code="error.wordOneSpecialChar"/>'
+                    }
+                }
+            };
+            $('#password').pwstrength(options);
+        });
+    </script>
+
+    <nav class="navbar navbar-default" th:replace="fragments/navigation"></nav>
+
+        <div class="container">
+            <h1>Please register to help us sort some real scans</h1>
+            <h2>Register your account details below</h2>
+            <form action="#" th:action="@{/registration/account}" th:object="${account}" method="POST" class="form-horizontal">
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="email">Email</label>
+                    <div class="col-sm-10">
+                        <input id="email" class="form-control" th:field="*{email}"/>
+                        <p class="text-danger" th:each="error: ${#fields.errors('email')}"
+                           th:text="${error}">Validation error</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="password">Password</label>
+                    <div class="col-sm-10">
+                        <input id="password" class="form-control" type="password" th:field="*{password}"/>
+                        <p class="text-danger" th:each="error : ${#fields.errors('password')}"
+                            th:text="${error}">Validation error</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="matchingPassword">Confirm password</label>
+                    <div class="col-sm-10">
+                        <input id="matchingPassword" class="form-control" type="password" th:field="*{matchingPassword}"/>
+                        <p class="text-danger" th:each="error : ${#fields.errors('matchingPassword')}"
+                           th:text="${error}">Validation error</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+
+
+                </div>
+                <div class="form-group">
+                    <div th:if="${#fields.hasGlobalErrors()}" id="errors" class="alert alert-warning">
+                        <p class="text-danger" th:each="error : ${#fields.globalErrors()}"
+                           th:text="${error}">Validation error</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
